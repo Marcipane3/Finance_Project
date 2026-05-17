@@ -1,0 +1,64 @@
+# Track B Fast Ideas configuration
+#
+# Edit these values to tune the system without changing code.
+
+track_b:
+  # Capital
+  sleeve_eur: 2000.0
+
+  # Mode: "single_monthly" (1 stock, 100% of sleeve, monthly cadence)
+  #    or "ranked_biweekly" (5 stocks, rank-weighted, bi-weekly cadence)
+  mode: single_monthly
+
+  # Stop-loss as fraction of entry price (0.10 = -10%)
+  stop_loss_pct: 0.10
+
+  # Universe — which indices to include
+  universe:
+    sp500: true
+    stoxx600: true
+    nikkei225: true
+    ftse100: true
+    asx200: true
+    min_adv_usd: 5000000   # filter out illiquid names
+
+  # Pre-filter — reduce universe to ~50 candidates
+  prefilter:
+    top_n: 50
+    weights:
+      momentum_12_1: 0.30   # 12m return excluding most recent month
+      momentum_1: 0.20      # last 1m return
+      earnings_surprise: 0.20
+      analyst_upgrade_30d: 0.15
+      news_volume_30d: 0.15
+
+  # Deep-dive — full enrichment per candidate
+  deep_dive:
+    top_n: 15
+    signals:
+      - technical
+      - fundamentals
+      - news
+      - analyst
+      - sentiment
+
+  # LLM thesis writer
+  thesis:
+    # In single_monthly mode: 1 final pick gets a thesis
+    # In ranked_biweekly mode: top 5 get theses
+    model: claude-sonnet-4-6
+    max_tokens_per_pick: 2000
+    style: long_form   # short | medium | long_form
+
+  # Output
+  output:
+    format: markdown
+    save_to: track_b/output/reports/
+
+# Broker fee model (for honest performance reporting)
+fees:
+  broker: nordea_ask
+  fixed_dkk_per_trade: 29.0
+  variable_pct: 0.0020
+  fx_margin_pct: 0.0025
+  dkk_per_eur: 7.46

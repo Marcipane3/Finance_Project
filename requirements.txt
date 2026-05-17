@@ -1,0 +1,28 @@
+# Core data
+yfinance>=0.2.40
+pandas>=2.0
+numpy>=1.26
+python-dateutil>=2.9
+
+# Universe scraping
+beautifulsoup4>=4.12
+lxml>=5.0
+requests>=2.31
+
+# News
+feedparser>=6.0
+
+# LLM thesis writer
+anthropic>=0.40
+python-dotenv>=1.0
+
+# Config + logging
+pyyaml>=6.0
+
+# Track A solver (will add later — placeholder)
+# cvxpy>=1.5
+# highspy>=1.7
+
+# Dev / tooling
+ruff>=0.5
+pytest>=8.0
