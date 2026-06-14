@@ -110,6 +110,15 @@ def cmd_live(args) -> None:
     out_dir.mkdir(exist_ok=True)
     out_path = out_dir / f"live_{date.today()}.md"
     out_path.write_text(md, encoding="utf-8")
+
+    # NL-5: structured sidecar for the cockpit (best-effort)
+    try:
+        from track_a.src.export import write_sidecar
+        write_sidecar(out_path, rec, md)
+    except Exception:
+        import logging
+        logging.getLogger(__name__).exception("Sidecar export failed (report still saved)")
+
     print(f"\nSaved to {out_path}")
 
 

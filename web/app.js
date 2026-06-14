@@ -294,9 +294,13 @@ function loadHoldings() {
 }
 function saveHoldings(h) { localStorage.setItem(HOLDINGS_KEY, JSON.stringify(h)); }
 
-/** Build {ticker: price} from research data so holdings can show a P&L overlay. */
+/** Build {ticker: price} from research data so holdings can show a P&L overlay.
+ *  Sources: the current pick + any priced ticker in the track record. */
 function priceMap() {
   const m = {};
+  (state.data.track_record || []).forEach((r) => {
+    if (r.ticker && r.last_price != null) m[r.ticker] = r.last_price;
+  });
   const b = state.data.track_b;
   if (b && b.pick && b.pick.ticker && b.pick.price_usd != null) m[b.pick.ticker] = b.pick.price_usd;
   return m;

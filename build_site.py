@@ -57,10 +57,12 @@ def build(fetch_fx: bool = True) -> dict:
         "track_b": _build_track_b(),
         "track_a": _build_track_a(),
     }
-    payload["track_record"] = _update_track_record(payload["track_b"])
+    payload["track_record"] = _update_track_record(payload["track_b"], fetch=fetch_fx)
 
+    payload = _json_safe(payload)
     out = WEB_DATA / "latest.json"
-    out.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
+    out.write_text(json.dumps(payload, indent=2, ensure_ascii=False, allow_nan=False),
+                   encoding="utf-8")
     logger.info("Wrote %s", out)
     return payload
 
@@ -71,14 +73,19 @@ def _build_track_b() -> dict | None:
     sidecar = _latest_file(TRACK_B_REPORTS, "*_report.json")
     if sidecar:
         logger.info("Track B: using sidecar %s", sidecar.name)
-        return json.loads(sidecar.read_text(encoding="utf-8"))
+        tb = json.loads(sidecar.read_text(encoding="utf-8"))
+    else:
+        md = _latest_file(TRACK_B_REPORTS, "*_report.md")
+        if not md:
+            logger.warning("Track B: no report found")
+            return None
+        logger.info("Track B: parsing markdown %s", md.name)
+        tb = _parse_track_b_md(md)
 
-    md = _latest_file(TRACK_B_REPORTS, "*_report.md")
-    if not md:
-        logger.warning("Track B: no report found")
-        return None
-    logger.info("Track B: parsing markdown %s", md.name)
-    return _parse_track_b_md(md)
+    # Stop-loss is owned by the daily alert files, not the monthly report —
+    # always refresh it here so both data paths surface the latest status.
+    tb["stop_loss"] = _latest_stop_loss()
+    return tb
 
 
 def _parse_track_b_md(path: Path) -> dict:
@@ -116,7 +123,7 @@ def _parse_track_b_md(path: Path) -> dict:
         },
         "leaderboard": leaderboard,
         "report_md": text,
-        "stop_loss": _latest_stop_loss(),
+        # stop_loss is attached by _build_track_b() from the daily alert files
     }
 
 
@@ -236,11 +243,12 @@ def _parse_a_positions(text: str, header: str) -> list[dict]:
 
 # ── track record (NL-4) ───────────────────────────────────────────────────────
 
-def _update_track_record(track_b: dict | None) -> list[dict]:
-    """Append the current pick to the running record (keyed by ticker+date).
+def _update_track_record(track_b: dict | None, fetch: bool = True) -> list[dict]:
+    """Append the current pick to the running record and refresh realized returns.
 
-    Realized returns vs benchmark are filled in by a later run / dedicated
-    retrospective job; here we just ensure each pick is logged once.
+    Each pick is logged once (keyed by ticker+date). On each run we recompute
+    every open pick's return vs its entry and the benchmark's return over the
+    same window — the realized-performance / learning loop (BACKLOG NL-4).
     """
     path = WEB_DATA / "track_record.json"
     record: list[dict] = []
@@ -265,8 +273,76 @@ def _update_track_record(track_b: dict | None) -> list[dict]:
                 "benchmark_return_pct": None,
             })
 
-    path.write_text(json.dumps(record, indent=2, ensure_ascii=False), encoding="utf-8")
+    if fetch:
+        _fill_realized_returns(record)
+
+    path.write_text(json.dumps(_json_safe(record), indent=2, ensure_ascii=False,
+                               allow_nan=False), encoding="utf-8")
     return record
+
+
+def _fill_realized_returns(record: list[dict]) -> None:
+    """For each open pick, compute return vs entry and vs benchmark since pick date."""
+    open_picks = [r for r in record if r.get("status") == "open" and r.get("entry_price_usd")]
+    if not open_picks:
+        return
+    try:
+        import yfinance as yf
+    except Exception:  # noqa: BLE001
+        logger.warning("yfinance unavailable; skipping realized-return refresh")
+        return
+
+    bench_sym = "ACWI"
+    bench_hist = _safe_history(yf, bench_sym, period="2y")
+
+    for r in open_picks:
+        ticker = r["ticker"]
+        entry = r.get("entry_price_usd")
+        hist = _safe_history(yf, ticker, period="2y")
+        if hist is None or hist.empty:
+            continue
+        last = float(hist["Close"].iloc[-1])
+        r["return_pct"] = last / entry - 1 if entry else None
+        r["last_price"] = last
+
+        # benchmark return over the same window (pick_date → today)
+        if bench_hist is not None and not bench_hist.empty and r.get("pick_date"):
+            b0 = _price_on_or_after(bench_hist, r["pick_date"])
+            b1 = float(bench_hist["Close"].iloc[-1])
+            if b0:
+                r["benchmark_return_pct"] = b1 / b0 - 1
+    logger.info("Refreshed realized returns for %d open pick(s)", len(open_picks))
+
+
+def _safe_history(yf, symbol: str, period: str):
+    try:
+        return yf.Ticker(symbol).history(period=period)
+    except Exception as e:  # noqa: BLE001
+        logger.warning("history fetch failed for %s (%s)", symbol, e)
+        return None
+
+
+def _price_on_or_after(hist, day: str) -> float | None:
+    import pandas as pd
+    try:
+        ts = pd.Timestamp(day, tz=hist.index.tz)
+        sub = hist[hist.index >= ts]
+        return float(sub["Close"].iloc[0]) if not sub.empty else None
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def _json_safe(obj):
+    """Recursively replace non-finite floats (NaN/inf) with None so the payload
+    is valid JSON that the browser's JSON.parse accepts."""
+    import math
+    if isinstance(obj, float):
+        return obj if math.isfinite(obj) else None
+    if isinstance(obj, dict):
+        return {k: _json_safe(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_json_safe(v) for v in obj]
+    return obj
 
 
 # ── FX ────────────────────────────────────────────────────────────────────────

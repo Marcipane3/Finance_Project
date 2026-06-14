@@ -317,8 +317,18 @@ tracks) · brokerage as a real v2 study.
 
 **Cockpit data contract** lives in `web/README.md`. Deploy steps there too.
 
+**Backlog progress (2026-06-14, after the cockpit):**
+- **NL-4 DONE** — realized-performance loop. `build_site._fill_realized_returns()` scores every open
+  pick vs entry and vs ACWI each run → `track_record.json` → Track Record tab. First result: WDC
+  **+24.9%** since pick vs ACWI **+1.4%**.
+- **NL-5 DONE** — JSON sidecars. `track_{a,b}/src/export.py` write structured `*_report.json` /
+  `live_*.json` next to each report (hooked, best-effort); `build_site` prefers them over markdown
+  parsing. NaN→null sanitization added so the browser never chokes. 128/128 tests still pass.
+- Frontend: holdings P&L overlay now sources prices from the whole track record, not just the
+  current pick.
+
 **Open follow-ups (for Marcel):**
-1. Review BACKLOG NL-1…NL-8 — cut / re-rank.
+1. Review remaining BACKLOG NL-1/2/3/6/7/8 — cut / re-rank.
 2. Push to GitHub, enable Pages (Actions source), add `ANTHROPIC_API_KEY` secret, run "Deploy cockpit" once.
 3. Server-side daily stop-loss needs a non-sensitive `watch.json` (ticker + stop only) to be
    useful in CI — holdings are browser-only by design. Small follow-up.

@@ -97,6 +97,13 @@ def run_pipeline(
     report_path = output_dir / f"{date.today()}_report.md"
     report_path.write_text(report_md, encoding="utf-8")
 
+    # NL-5: structured sidecar for the cockpit (best-effort; never block the report)
+    try:
+        from track_b.src.export import write_sidecar
+        write_sidecar(report_path, pick, ranked, rec, report_md)
+    except Exception:
+        logger.exception("Sidecar export failed (report still saved)")
+
     logger.info("Stage 7/7 — Report saved to %s (%.1fs total)", report_path, elapsed)
     return report_path
 

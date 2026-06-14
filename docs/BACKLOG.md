@@ -197,13 +197,18 @@ yfinance + free RSS may give thin news coverage. Paid news APIs (NewsAPI, Market
 **Hypothesis.** A monthly cron (`run.py` for both tracks → commit report + `latest.json`) and a daily cron (`daily_check.py` stop-loss → commit alert, email on breach) make the cockpit update itself. Anthropic key lives in an Actions secret, never in the public site.
 **How we'd test.** Schedule both workflows; confirm a clean monthly commit + a daily green/red alert; verify the key never appears in build output.
 
-### NL-4 (P1) — Realized-performance / benchmark tracking (the actual learning loop)
-**Hypothesis.** The biggest gap today: we generate picks but never systematically score them. Track every Track B pick's realized return vs its index from pick date, and Track A's live NAV vs S&P 500. This is what turns "fun money" into measurable skill.
-**How we'd test.** Append each pick to a `track_record.json`; recompute P&L vs benchmark on each run; chart cumulative pick performance vs index in the cockpit.
+### ~~NL-4 (P1) — Realized-performance / benchmark tracking~~ DONE (2026-06-14)
+**Implemented.** `build_site._fill_realized_returns()` recomputes every open Track B pick's
+return vs entry and vs benchmark (ACWI) over the same window on each run; written to
+`web/data/track_record.json` and rendered in the cockpit's Track Record tab. First real result:
+WDC +24.9% since pick vs ACWI +1.4%. *Still TODO:* Track A live NAV vs S&P 500; cumulative chart.
 
-### NL-5 (P1) — Unified `portfolio.json` contract
-**Hypothesis.** One schema both tracks write and the cockpit reads decouples the UI from pipeline internals. Add a `track_a/src/export.py` + `track_b/src/export.py` that emit a shared shape.
-**How we'd test.** Define schema, write from both tracks, validate the cockpit renders from JSON alone (no Python at view time).
+### ~~NL-5 (P1) — JSON sidecar / unified contract~~ DONE (2026-06-14)
+**Implemented.** `track_b/src/export.py` + `track_a/src/export.py` write a `*_report.json` /
+`live_*.json` sidecar next to each markdown report (hooked into `report.py::run_pipeline` and
+`track_a/run.py` live mode, best-effort). `build_site` prefers the sidecar over markdown parsing.
+NaN floats sanitized to null (`_json_safe` + `allow_nan=False`) so the browser's JSON.parse never
+chokes. *Still TODO:* a true single `portfolio.json` superset if the two shapes ever need merging.
 
 ### NL-6 (P2) — Stop-loss push notification
 **Hypothesis.** A daily breach should reach your phone, not just a committed markdown file. GitHub Actions can email on failure exit code, or POST to a webhook (ntfy/Pushover/Telegram bot).
