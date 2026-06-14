@@ -21,6 +21,15 @@ The pure fee saving is modest (~€80–130/year on a €25k book). The decisive
 
 ---
 
+## Two accounts, or consolidate? (added 2026-06-14)
+
+**Verdict: consolidate to a single Saxo ASK and close Nordea. Running both makes no sense — for a structural reason, not a soft one.** Because there's only one ASK per person (below), "two accounts" can only mean one of two worse options:
+
+1. **Nordea ASK + a Saxo *taxable* depot** — keeps the €23k tax-advantaged book at the API-blind, pricier broker and moves only the small Track B sleeve to Saxo. But a taxable depot loses the lager-beskatning wrapper, so you'd put the *small* money where the API is while the *real* book stays unreachable. Backwards.
+2. **Two relationships "just in case"** — double the statements, FX relationships, and admin for zero benefit. Nordea brokerage offers nothing Saxo doesn't do cheaper.
+
+The whole point of touching Saxo is the read API + lower min-commission; both only pay off if the actual positions live there. **Sequencing caveat:** don't *close* Nordea until the Saxo transfer is fully settled (open → transfer → confirm settled → close). The only thing that would justify keeping Nordea is using it as a plain *retail bank* (salary/cash) — a banking decision, not a portfolio one.
+
 ## The hard constraint
 
 - **One ASK per person, full stop.** You cannot run Nordea and Saxo ASKs in parallel. Switching = moving the *entire* account. Track A and Track B both move together.

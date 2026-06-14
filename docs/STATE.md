@@ -1,6 +1,6 @@
 # STATE — Portfolio Optimization Project
 
-*Last updated: 2026-05-17 (monthly 1-pick locked; user setting up local env)*
+*Last updated: 2026-06-14 (cockpit live on GitHub Pages; NL-4/5/6 done; brokerage = consolidate to Saxo)*
 *Always update the "Now" section at the end of each working session.*
 
 ## What this project is
@@ -326,14 +326,26 @@ tracks) · brokerage as a real v2 study.
   parsing. NaN→null sanitization added so the browser never chokes. 128/128 tests still pass.
 - Frontend: holdings P&L overlay now sources prices from the whole track record, not just the
   current pick.
+- **NL-6 DONE** — server-side stop-loss + push. `build_site._write_watch()` emits non-sensitive
+  `web/data/watch.json` (ticker + entry/stop only); `stopwatch` resolves local `holdings.csv` →
+  `watch.json` fallback, so the daily CI cron is no longer a no-op. `daily-stoploss.yml` pushes via
+  ntfy on breach (no-op without `NTFY_TOPIC` secret). `daily_check.py` got a UTF-8 stdout guard so
+  the emoji alert doesn't crash on a Windows console. 132/132 tests pass.
+
+**Shipped & live (2026-06-14):**
+- Repo pushed (public): https://github.com/Marcipane3/Finance_Project
+- Pages enabled (source = GitHub Actions), deploy green. **Cockpit live:**
+  https://marcipane3.github.io/Finance_Project/
+- Brokerage: decided to **consolidate to one Saxo ASK** (not run two accounts) when the move
+  happens — see BROKERAGE.md + DECISIONS.
 
 **Open follow-ups (for Marcel):**
-1. Review remaining BACKLOG NL-1/2/3/6/7/8 — cut / re-rank.
-2. Push to GitHub, enable Pages (Actions source), add `ANTHROPIC_API_KEY` secret, run "Deploy cockpit" once.
-3. Server-side daily stop-loss needs a non-sensitive `watch.json` (ticker + stop only) to be
-   useful in CI — holdings are browser-only by design. Small follow-up.
-4. NL-5: have the pipelines emit JSON sidecars directly so build_site stops parsing markdown.
-5. Still pending from before: the full 2021–2026 Track A μ₀ sweep (surfaces in cockpit via NL-8).
+1. **Add `ANTHROPIC_API_KEY` secret** — `gh secret set ANTHROPIC_API_KEY` — or the monthly thesis
+   step fails when the 1st-of-month cron fires. (No secrets are set yet.)
+2. *(Optional)* arm the breach push: install the ntfy app, pick a topic, `gh secret set NTFY_TOPIC`.
+3. Review remaining BACKLOG NL-7 (committed price snapshot) / NL-8 (Track A μ₀ sweep + tear sheets
+   in cockpit) — cut / re-rank.
+4. Still pending from before: the full 2021–2026 Track A μ₀ sweep (surfaces in cockpit via NL-8).
 
 ## Open blockers
 

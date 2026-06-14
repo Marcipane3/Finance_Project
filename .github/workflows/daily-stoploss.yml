@@ -4,10 +4,12 @@ name: Daily stop-loss
 # weekdays, regenerates the cockpit data, and commits. A breach turns the
 # "Fast Ideas" tab dot red in the cockpit.
 #
-# Note: the server only knows a position if one is recorded in a committed,
-# non-sensitive watch file. Personal € amounts stay browser-only by design,
-# so with no watch file this job reports "no_position" (harmless no-op).
-# See docs/STATE.md "cockpit" notes for the watch.json follow-up.
+# The server knows the active position from web/data/watch.json — a committed,
+# non-sensitive file (ticker + entry/stop price only, no shares or € amounts)
+# emitted by build_site.py from the public monthly pick. Personal € amounts stay
+# browser-only by design. On a breach (exit 1) we send a phone push via ntfy.sh
+# if the NTFY_TOPIC secret is set; otherwise the breach just turns the cockpit
+# dot red on the next build.
 
 on:
   schedule:
@@ -31,8 +33,27 @@ jobs:
       - run: pip install -r requirements.txt
 
       - name: Stop-loss check
-        run: python track_b/daily_check.py --log-level INFO
-        continue-on-error: true   # exit 1 = breach is expected signalling, not failure
+        id: stop
+        run: |
+          set +e
+          python track_b/daily_check.py --log-level INFO
+          echo "code=$?" >> "$GITHUB_OUTPUT"   # 0 safe/none · 1 breach · 2 no price
+
+      - name: Notify on breach
+        if: steps.stop.outputs.code == '1'
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+        run: |
+          if [ -z "${NTFY_TOPIC}" ]; then
+            echo "No NTFY_TOPIC secret set — skipping push (cockpit dot still goes red)."
+            exit 0
+          fi
+          curl -fsS \
+            -H "Title: Stop-loss breached" \
+            -H "Priority: urgent" \
+            -H "Tags: rotating_light,chart_with_downwards_trend" \
+            -d "A Track B stop-loss was breached today. Open the cockpit and rotate to cash." \
+            "https://ntfy.sh/${NTFY_TOPIC}" && echo "Push sent via ntfy."
 
       - name: Build cockpit data
         run: python build_site.py

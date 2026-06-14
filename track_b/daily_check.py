@@ -25,7 +25,6 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-import yaml
 from track_b.src.report import load_config
 from track_b.src.stopwatch import check_stop_loss, format_alert, save_alert
 
@@ -65,6 +64,12 @@ def main() -> None:
         format="%(asctime)s %(levelname)-8s %(name)s: %(message)s",
         datefmt="%H:%M:%S",
     )
+
+    # Alert text contains emoji (✅/🚨); avoid a crash on legacy Windows code pages.
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except (AttributeError, ValueError):
+        pass
 
     config = load_config(Path(args.config) if args.config else None)
     holdings_path = Path(args.holdings) if args.holdings else None

@@ -210,9 +210,21 @@ WDC +24.9% since pick vs ACWI +1.4%. *Still TODO:* Track A live NAV vs S&P 500; 
 NaN floats sanitized to null (`_json_safe` + `allow_nan=False`) so the browser's JSON.parse never
 chokes. *Still TODO:* a true single `portfolio.json` superset if the two shapes ever need merging.
 
-### NL-6 (P2) — Stop-loss push notification
-**Hypothesis.** A daily breach should reach your phone, not just a committed markdown file. GitHub Actions can email on failure exit code, or POST to a webhook (ntfy/Pushover/Telegram bot).
-**How we'd test.** Force a breach in a test holding; confirm notification arrives.
+### ~~NL-6 (P2) — Stop-loss push notification~~ DONE (2026-06-14)
+**Implemented.** Two parts:
+- **`watch.json` (the missing prerequisite).** The daily cron runs in CI where the
+  real `holdings.csv` is gitignored, so it had nothing to check — a silent no-op.
+  `build_site._write_watch()` now emits `web/data/watch.json` (ticker + entry/stop
+  price only; **no** shares or € amounts) from the public pick. `stopwatch` resolves
+  its target as local `holdings.csv` → `watch.json` fallback (`_load_local_target`
+  → `_load_watch_target`), so CI actually monitors the position. Verified: WDC
+  resolved from watch.json, +29.8% to stop, "safe".
+- **Push.** `daily-stoploss.yml` captures the exit code; on breach (exit 1) it POSTs
+  to `https://ntfy.sh/$NTFY_TOPIC` (urgent priority). No-op if the `NTFY_TOPIC`
+  secret is unset — breach still turns the cockpit dot red regardless.
+**Setup for Marcel:** install the ntfy app, pick an unguessable topic, then
+`gh secret set NTFY_TOPIC --repo Marcipane3/Finance_Project`. *Still optional:*
+Pushover/Telegram if ntfy's open topics feel too loose (the topic name is the only secret).
 
 ### NL-7 (P2) — Committed price snapshot for reproducible builds
 **Hypothesis.** Pages builds shouldn't depend on a live yfinance fetch succeeding in CI. Commit a small parquet/JSON price snapshot per run so the site is reproducible and fast.

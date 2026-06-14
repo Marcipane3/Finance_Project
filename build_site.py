@@ -64,7 +64,42 @@ def build(fetch_fx: bool = True) -> dict:
     out.write_text(json.dumps(payload, indent=2, ensure_ascii=False, allow_nan=False),
                    encoding="utf-8")
     logger.info("Wrote %s", out)
+
+    _write_watch(payload["track_b"])
     return payload
+
+
+def _write_watch(track_b: dict | None) -> None:
+    """Emit a non-sensitive stop-loss trigger file (BACKLOG watch.json follow-up).
+
+    The daily stop-loss cron runs in CI, where the real ``holdings.csv`` is
+    gitignored and absent — so without this the daily check has nothing to watch
+    and always reports "no_position". ``watch.json`` carries only the public
+    pick's ticker + entry/stop price (all already in the committed report); it
+    holds **no** share counts or € amounts. A local ``holdings.csv`` overrides it
+    when present (see ``stopwatch._load_local_target``).
+    """
+    out = WEB_DATA / "watch.json"
+    pick = (track_b or {}).get("pick") or {}
+    if not pick.get("ticker"):
+        # No active pick — clear any stale watch so the daily check reports clean.
+        out.unlink(missing_ok=True)
+        return
+
+    rec = pick.get("recommendation") or {}
+    watch = _json_safe({
+        "ticker": pick["ticker"],
+        "entry_price": pick.get("price_usd"),
+        "stop_price": rec.get("stop_price"),
+        "pick_date": (track_b or {}).get("as_of"),
+        "currency": "USD",
+        "source": "public_pick",
+        "note": ("Non-sensitive stop-loss trigger from the public monthly pick. "
+                 "No share counts or € amounts. A local holdings.csv overrides this."),
+    })
+    out.write_text(json.dumps(watch, indent=2, ensure_ascii=False, allow_nan=False),
+                   encoding="utf-8")
+    logger.info("Wrote %s", out)
 
 
 # ── Track B ─────────────────────────────────────────────────────────────────

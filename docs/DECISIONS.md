@@ -4,6 +4,28 @@ Append-only. Newest at top. Format: date, decision, rationale, alternatives reje
 
 ---
 
+## 2026-06-14 — Server-side stop-loss via non-sensitive watch.json + ntfy push (NL-6)
+
+**Decision.** Close the daily-stop-loss CI gap with `web/data/watch.json` — a committed, non-sensitive trigger file (ticker + entry/stop price + pick date; **no** shares, **no** € amounts) emitted by `build_site._write_watch()` from the public pick. `stopwatch.check_stop_loss` now resolves its target in priority order: local `holdings.csv` (full detail, gitignored) → `watch.json` (CI fallback). On breach, `daily-stoploss.yml` sends a phone push via `ntfy.sh/$NTFY_TOPIC` (no-op if the secret is unset).
+
+**Rationale.** The daily cron was a silent no-op: it read the gitignored `holdings.csv`, found nothing in CI, and always reported "no_position". Everything in `watch.json` is already public in the committed monthly report, so exposing it leaks nothing new — while the sensitive parts (share count, € value) stay browser-only. ntfy needs no account; the topic name itself is the only secret.
+
+**Alternatives rejected.** Committing real `holdings.csv` (publishes positions — the thing we explicitly designed against). Email-on-failure only (less immediate than a push; kept as the zero-config fallback since a breach still reddens the cockpit dot regardless).
+
+**Follow-up.** Marcel: `gh secret set NTFY_TOPIC` + install the ntfy app to arm the push. Local `holdings.csv` still overrides `watch.json` so on-machine runs use true entry/shares.
+
+---
+
+## 2026-06-14 — Brokerage: consolidate to one Saxo ASK, do not run two accounts
+
+**Decision.** When the broker move happens, close Nordea and consolidate into a single Saxo ASK rather than keeping both. Documented in `docs/BROKERAGE.md` ("Two accounts, or consolidate?").
+
+**Rationale.** Only one Aktiesparekonto is allowed per person, so "two accounts" can only mean (a) Nordea ASK + a Saxo *taxable* depot — which strands the €23k tax-advantaged book at the API-blind broker and moves only the small sleeve, losing lager-beskatning on it; or (b) two parallel relationships with double admin for no benefit. The API + lower fees only pay off if the real positions live at Saxo. Keep Nordea only if used as a plain retail bank (cash/salary), which is a separate decision.
+
+**Follow-up.** Sequencing: open Saxo → transfer → confirm settled → *then* close Nordea (never leave an out-of-market gap unmanaged).
+
+---
+
 ## 2026-06-14 — Interface: static GitHub Pages "cockpit", private-by-design holdings
 
 **Decision.** Build a unified static web cockpit (`web/`) over a machine-readable `web/data/latest.json` contract, covering both tracks. GitHub Actions automate it: `monthly-pick.yml` runs both pipelines + commits data, `daily-stoploss.yml` runs the stop-loss, `deploy-pages.yml` publishes `web/` to GitHub Pages on data change. `build_site.py` aggregates pipeline output (JSON sidecar preferred, markdown parse fallback) and maintains `track_record.json` (the realized-performance loop, NL-4). **Personal holdings live only in the browser (localStorage), never committed.** Confirmed via four-question check with Marcel (2026-06-14).

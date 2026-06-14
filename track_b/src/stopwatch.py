@@ -9,6 +9,7 @@ Intended as a lightweight daily cron — does not run the full pipeline.
 Exit code from daily_check.py: 0 = safe (or no position), 1 = breach.
 """
 
+import json
 import logging
 from datetime import date
 from pathlib import Path
@@ -21,13 +22,22 @@ from track_b.src.holdings import load_holdings
 logger = logging.getLogger(__name__)
 
 _ALERT_DIR = Path(__file__).parent.parent / "output" / "alerts"
+# Non-sensitive public stop-loss trigger emitted by build_site._write_watch().
+_WATCH_PATH = Path(__file__).parent.parent.parent / "web" / "data" / "watch.json"
 
 
 def check_stop_loss(
     config: dict,
     holdings_path: Path | None = None,
+    watch_path: Path | None = None,
 ) -> dict:
     """Return a status dict for the currently held position.
+
+    Resolves the watch target in priority order:
+      1. the local ``holdings.csv`` (full detail: shares, entry, stop) — used on
+         Marcel's machine, never committed;
+      2. the committed non-sensitive ``web/data/watch.json`` (ticker + entry/stop
+         only) — the CI fallback so the daily cron isn't a no-op.
 
     Returns
     -------
@@ -41,11 +51,11 @@ def check_stop_loss(
         pnl_pct         — float or None   (current_price / entry_price - 1)
         distance_to_stop — float or None  (current_price / stop_price - 1, negative = breached)
         shares          — float or None
+        source          — "holdings" | "watch" | None
         sleeve_eur      — float           (from config)
         date            — str             (today)
     """
     sleeve_eur: float = config["track_b"].get("sleeve_eur", 2000.0)
-    holdings = load_holdings(holdings_path)
 
     base = {
         "status":           "no_position",
@@ -57,31 +67,26 @@ def check_stop_loss(
         "pnl_pct":          None,
         "distance_to_stop": None,
         "shares":           None,
+        "source":           None,
         "sleeve_eur":       sleeve_eur,
         "date":             str(date.today()),
     }
 
-    if holdings.empty:
+    target = _load_local_target(holdings_path) or _load_watch_target(watch_path)
+    if target is None:
         return base
 
-    held = holdings[holdings["status"].str.strip().str.lower() == "held"]
-    if held.empty:
-        return base
-
-    row = held.iloc[0]
-    ticker     = str(row.get("ticker", "")).strip()
-    entry_price = _sf(row.get("entry_price"))
-    stop_price  = _sf(row.get("current_stop_price"))
-    shares      = _sf(row.get("shares"))
-    entry_date  = str(row.get("entry_date", "")).strip()
-
+    ticker = target["ticker"]
     base.update({
-        "ticker":     ticker,
-        "stop_price": stop_price,
-        "entry_price": entry_price,
-        "entry_date": entry_date,
-        "shares":     shares,
+        "ticker":      ticker,
+        "stop_price":  target["stop_price"],
+        "entry_price": target["entry_price"],
+        "entry_date":  target["entry_date"],
+        "shares":      target["shares"],
+        "source":      target["source"],
     })
+    entry_price = target["entry_price"]
+    stop_price  = target["stop_price"]
 
     current_price = _fetch_price(ticker)
     if current_price is None:
@@ -185,7 +190,64 @@ def format_alert(status: dict) -> str:
         "",
         f"*Check run: {today}*",
     ]
+    if status.get("source") == "watch":
+        lines += [
+            "",
+            "_Source: public watch.json (pick price as entry proxy; no share/€ data). "
+            "Local holdings.csv overrides this when run on your machine._",
+        ]
     return "\n".join(lines) + "\n"
+
+
+# ── target resolution ───────────────────────────────────────────────────────
+
+def _load_local_target(holdings_path: Path | None) -> dict | None:
+    """Active position from the local (gitignored) holdings.csv, or None."""
+    holdings = load_holdings(holdings_path)
+    if holdings.empty:
+        return None
+    held = holdings[holdings["status"].str.strip().str.lower() == "held"]
+    if held.empty:
+        return None
+    row = held.iloc[0]
+    ticker = str(row.get("ticker", "")).strip()
+    if not ticker:
+        return None
+    return {
+        "ticker":      ticker,
+        "entry_price": _sf(row.get("entry_price")),
+        "stop_price":  _sf(row.get("current_stop_price")),
+        "shares":      _sf(row.get("shares")),
+        "entry_date":  str(row.get("entry_date", "")).strip(),
+        "source":      "holdings",
+    }
+
+
+def _load_watch_target(watch_path: Path | None) -> dict | None:
+    """Public non-sensitive watch.json target (CI fallback), or None.
+
+    No share count exists in the public file — ``shares`` is therefore None and
+    the alert reports % distance/P&L only, never a € value.
+    """
+    p = watch_path or _WATCH_PATH
+    if not p.exists():
+        return None
+    try:
+        data = json.loads(p.read_text(encoding="utf-8"))
+    except Exception:
+        logger.warning("Stopwatch: could not parse watch file %s", p)
+        return None
+    ticker = str(data.get("ticker", "")).strip()
+    if not ticker:
+        return None
+    return {
+        "ticker":      ticker,
+        "entry_price": _sf(data.get("entry_price")),
+        "stop_price":  _sf(data.get("stop_price")),
+        "shares":      None,
+        "entry_date":  str(data.get("pick_date", "")).strip(),
+        "source":      "watch",
+    }
 
 
 # ── helpers ───────────────────────────────────────────────────────────────────

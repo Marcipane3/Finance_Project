@@ -1,0 +1,9 @@
+{
+  "ticker": "WDC",
+  "entry_price": 450.76,
+  "stop_price": 433.82,
+  "pick_date": "2026-05-18",
+  "currency": "USD",
+  "source": "public_pick",
+  "note": "Non-sensitive stop-loss trigger from the public monthly pick. No share counts or € amounts. A local holdings.csv overrides this."
+}
