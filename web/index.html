@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Portfolio Cockpit</title>
+  <meta name="description" content="Self-updating portfolio research terminal — Track A core + Track B fast ideas." />
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">◆</span>
+      <div>
+        <h1>Portfolio Cockpit</h1>
+        <p class="sub" id="generated">loading…</p>
+      </div>
+    </div>
+    <div class="fx" id="fxstrip"></div>
+  </header>
+
+  <nav class="tabs" id="tabs">
+    <button data-tab="overview" class="active">Overview</button>
+    <button data-tab="trackb">Fast Ideas <span class="dot" id="b-dot"></span></button>
+    <button data-tab="tracka">Core (Synapse)</button>
+    <button data-tab="record">Track Record</button>
+    <button data-tab="holdings">My Holdings <span class="lock">🔒</span></button>
+  </nav>
+
+  <main id="app">
+    <div class="loading" id="loading">Loading latest data…</div>
+  </main>
+
+  <footer class="foot">
+    <span>Research is public · positions stay in your browser (localStorage), never uploaded.</span>
+    <span id="foot-built"></span>
+  </footer>
+
+  <!-- markdown renderer (client-side only) -->
+  <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

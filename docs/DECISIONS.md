@@ -4,7 +4,153 @@ Append-only. Newest at top. Format: date, decision, rationale, alternatives reje
 
 ---
 
-## 2026-05-17 — Track B spec locked
+## 2026-06-14 — Interface: static GitHub Pages "cockpit", private-by-design holdings
+
+**Decision.** Build a unified static web cockpit (`web/`) over a machine-readable `web/data/latest.json` contract, covering both tracks. GitHub Actions automate it: `monthly-pick.yml` runs both pipelines + commits data, `daily-stoploss.yml` runs the stop-loss, `deploy-pages.yml` publishes `web/` to GitHub Pages on data change. `build_site.py` aggregates pipeline output (JSON sidecar preferred, markdown parse fallback) and maintains `track_record.json` (the realized-performance loop, NL-4). **Personal holdings live only in the browser (localStorage), never committed.** Confirmed via four-question check with Marcel (2026-06-14).
+
+**Rationale.**
+- **No fake brokerage API.** Nordea exposes no retail brokerage/depot read API (PSD2 = bank accounts only). The honest design is a static research terminal fed by the existing pipeline output, with manual/browser holdings behind an adapter. Saxo OpenAPI is the one real automated-holdings path and is treated as v2 (see BROKERAGE.md).
+- **Privacy split.** GitHub Pages is public; research (theses, signals, picks) is shareable, but € positions must not be. localStorage keeps money data client-side only. The public layer carries no holdings — only model allocations on the *configured* sleeve sizes (€23k / €2k assumptions), not real balances.
+- **Self-updating > local script.** Actions cron turns the project from a thing Marcel runs into a thing that maintains itself at zero hosting cost; the Anthropic key sits in an Actions secret, never in the public site.
+
+**Alternatives rejected.**
+- Private repo + private Pages (needs GitHub Pro; puts money in git) — rejected for the free, browser-private model.
+- Committing holdings.csv for the daily job to read — rejected: would publish positions. Consequence: the *server-side* daily stop-loss only fires meaningfully with a non-sensitive watch file; logged as a follow-up.
+- Faking/scraping a Nordea integration — rejected as dishonest and fragile.
+
+**Follow-up.**
+- Fixed a real privacy bug: `.gitignore` protected `track_*/data/holdings.csv` but the pipelines read `track_*/holdings.csv`. Corrected.
+- Server-side stop-loss needs a non-sensitive `watch.json` (ticker + stop only, no €) to be useful in CI — backlog.
+- Pipelines should emit JSON sidecars directly (NL-5) so build_site stops parsing markdown.
+
+---
+
+## 2026-06-14 — Brokerage v2: plan ASK move Nordea → Saxo (not blocking)
+
+**Decision.** Treat moving the Aktiesparekonto from Nordea to Saxo as a v2 project, gated on confirming two numbers (Nordea custody fee B4; Saxo ASK commission tier) and prototyping the Saxo OpenAPI read path on a sim account first. Full analysis in `docs/BROKERAGE.md`.
+
+**Rationale.** Saxo is cheapest for small mostly-US tickets ($1 min vs DKK 25–29) and is the **only** option with a personal read API (`PositionsMe()`) — which closes the cockpit's one automation gap. Pure fee saving is modest (~€80–130/yr); the API + best-in-test ASK is the real driver. One ASK per person means the whole account moves at once; transfer takes weeks, may force liquidation to cash, and blocks trading during the move — so timing it after a rebalance matters.
+
+**Alternatives rejected.** Nordnet (clean #2, cheaper than Nordea, but no personal API — nothing for the cockpit to automate against). Lunar (cheap on Danish names, no API, thin foreign coverage). Staying at Nordea (fine short-term; revisit once B4 is known).
+
+**Follow-up.** Confirm B4 + Saxo tier + in-kind transfer support; build `SaxoSync` adapter against sim account behind the existing holdings interface.
+
+---
+
+## 2026-05-19 — Track A: A1/A2 dual-mode optimizer design
+
+**Decision.** Track A runs two optimization modes each rebalance period in parallel:
+- **A1 (Full Rebalance):** MILP-CVaR optimizer over all N eligible stocks; buy and sell allowed; proportional TC (0.45%) in objective; new capital dilutes prev_weights by `(1 - new_capital_frac)` before TC decomposition.
+- **A2 (Capital Deployment):** All existing positions held unchanged; only new quarterly capital (€3,000 configurable) is allocated to NEW stocks not currently held; no selling; existing portfolio's scenario contribution enters as a constant (S,) vector.
+
+**Rationale.** Marcel's explicit request: he wants to see both "what the optimizer would do if I could sell" (A1) and "what new stocks should I buy with my quarterly injection" (A2). ASK account means turnover is tax-neutral — only broker fees penalize selling — but Marcel may still not want to sell stable winners. A2 gives him the buy-only view without suppressing the full-information A1 view.
+
+**Alternatives rejected.**
+- A2 operating on the full (existing + new) portfolio: would require selling to rebalance, defeating the point.
+- A2 using combined expected return constraint `E[r_combined] >= mu0`: makes A2 infeasible when new capital is a small fraction of total portfolio, because €3k / €23k = 11.5% of invested capital can't move the combined portfolio return by the full mu0 threshold.
+
+**Follow-up.** mu0 constraint for A2 → see next entry.
+
+---
+
+## 2026-05-19 — Track A: A2 mu0 constraint applied per unit of new capital
+
+**Decision.** In `solve_a2()`, the minimum return constraint is:
+```
+sum(new_scenarios @ w_new) / (S * new_capital_frac) >= mu0
+```
+i.e., the expected return on the new positions (expressed per unit of new capital deployed, not per unit of total portfolio) must exceed mu0.
+
+**Rationale.** With combined-portfolio constraint `E[r_combined] >= mu0`, A2 is infeasible on a sparse or empty portfolio because: `E[combined] = E[new] × new_cap_frac ≈ 10% × 11.5% = 1.15% < mu0_quarterly = 2.41%`. The new capital physically cannot move the combined portfolio return enough. The per-unit-of-new-capital formulation asks "does this €3k deployment earn at least mu0 on its own?" — which is the economically meaningful question for a buy-only capital injection.
+
+**Alternatives rejected.**
+- Lower mu0 globally for A2: would make A2 a weaker constraint than A1 for no principled reason.
+- Set mu0=0 for A2: gives a degenerate "minimize CVaR only" problem — any result is "optimal" including highly concentrated positions.
+
+---
+
+## 2026-05-19 — Track A: backtest period 2021-01-01 → rolling present
+
+**Decision.** Track A backtest runs from 2021-01-01 to today, not the thesis's 2015–2019 window. Price history fetched from 2016-01-01 (5 years before backtest start) to seed the MVN estimation at the first rebalance date. The window advances as time passes.
+
+**Rationale.** Marcel's explicit request: he wants to know how the strategy performs in the real post-thesis environment (2021–2026), not just replicate the in-sample result. The thesis already covers 2015–2019 and out-of-sample 2020–2024. Running 2021–present on live market data gives a more actionable benchmark for his actual portfolio decisions.
+
+**Alternatives rejected.**
+- 2015–2019 in-sample replication: would only confirm the thesis, not add new information.
+- 2020–present: 2020 is a COVID-crash year with extreme outlier returns — starts the backtest on an atypical period.
+
+---
+
+## 2026-05-18 — thesis.py: prompt caching restructured; max_tokens raised to 3500
+
+**Decision.** `_SYSTEM_PROMPT` trimmed to role-only (~130 tokens). New `_FORMAT_INSTRUCTIONS` constant (~900 tokens) holds the detailed section format guide, data interpretation notes, and quality standards. `_FORMAT_INSTRUCTIONS` is placed as the first content block in the user message with `cache_control: ephemeral`, making the cached prefix (system + format block) well above the 1024-token minimum. `max_tokens_per_pick` raised from 2000 → 3500 in both code default and `config.yaml`. Truncation warning added: logs when `output_tokens ≥ max_tokens - 50`.
+
+**Rationale.**
+- Prior system prompt (~380 tokens) was below the 1024-token cache threshold — `cache_read_input_tokens` was always 0.
+- Restructuring separates stable format instructions (cached) from volatile pick data (not cached), at the correct granularity.
+- 2000 token limit caused truncation ("in=998 out=2000" in log) — thesis was being cut mid-section.
+
+**Alternatives rejected.**
+- Padding `_SYSTEM_PROMPT` artificially: inelegant, harder to maintain.
+- Raising limit to 5000+: unnecessary; 3500 gives ~1,500 words of thesis with comfortable headroom.
+
+---
+
+## 2026-05-17 — thesis.py: stable system prompt cached, streaming, per-day cache
+
+**Decision.** `thesis.py` sends the analyst persona + section-format instructions as a cached system prompt block (`cache_control: ephemeral`), and puts volatile per-ticker signal data in the user message. Uses `client.messages.stream()` + `get_final_message()` for the ~2,000-token output. Results are cached per ticker per calendar date in `track_b/data/cache/thesis/TICKER_YYYY-MM-DD.md`.
+
+**Rationale.**
+- Prompt caching: the system prompt (~350 tokens) is identical across all monthly picks. Marking it ephemeral means the first call writes to cache; subsequent calls (re-runs, testing) pay only the negligible cache-read cost. At ~$2/year total cost this barely matters, but it's the right pattern.
+- Streaming: prevents timeout on 2,000 token output.
+- Per-day cache: lets the pipeline re-run (e.g. crash + restart) without burning tokens. Dated file name means a new thesis is generated on the next calendar day.
+
+**Alternatives rejected.**
+- Non-streaming: fine for 2,000 tokens at this latency, but streaming is the habit for any non-trivial output.
+- Cache per ticker only (no date in filename): would serve a stale thesis forever. Monthly cadence means the cached thesis is valid for one calendar day; next day a fresh one is generated.
+
+**Follow-up.** Holdings diff module is next.
+
+---
+
+## 2026-05-17 — Track B monthly 1-pick variant locked
+
+**Decision.** Track B v0.1 is the monthly 1-pick variant. One stock per month, 100% of sleeve in that name. Stop-loss at -10% rotates to cash; wait for next monthly run. Output: long-form markdown report (~1,500 words) per pick. Always fully invested or fully in cash (no partial positions).
+
+**Rationale.** Marcel chose explicitly. Reasons aligned: 
+- Fee math: ~7% annual drag at Nordea (monthly 1-pick) vs. 30–74% (bi-weekly multi-pick) — 4–10× cheaper.
+- Stays inside Nordea ASK without forcing a broker switch.
+- Forces commitment per pick — sharper learning loop, no hiding bad calls inside a portfolio.
+- Code is half the size: no position sizing, no rank weighting, no portfolio diff.
+- Easy to extend to multi-pick later if Marcel wants diversification — strict subset of the bi-weekly design.
+
+**Alternatives rejected.**
+- Bi-weekly 5-pick (original spec): rejected — fee economics defeat the strategy at this account size, broker switch is friction Marcel doesn't want.
+- Bi-weekly 1-pick: rejected — adds rotation cost without commensurate signal improvement.
+- Quarterly 1-pick: rejected — too slow for "play and learn" goal Marcel articulated.
+
+**Follow-up.** Broker switch question (B6) demoted from blocker to backlog item — not gating Track B anymore.
+
+---
+
+## 2026-05-17 — F-Score sourcing: compute from raw yfinance data, not external API
+
+**Decision.** When Track A starts, we compute the Piotroski F-Score ourselves from raw balance sheet / income statement / cash flow data via yfinance. No paid API for pre-computed scores.
+
+**Rationale.**
+- Marcel suggested yfinance might provide pre-computed F-Scores; it does not — only raw financials. Every public example computes the score from those.
+- Pre-computed F-Score endpoints exist (FMP, GuruFocus) but cost $15–30/month and lock us to their variant.
+- F-Score variants differ slightly (Piotroski original 2000 paper, FMP TTM variant, GuruFocus variant). Computing ourselves lets us pin to the exact thesis variant.
+- ~80 lines of code, well-tested logic, no recurring cost.
+- Not a Track B concern — Track B uses LLM thesis, no F-Score involved.
+
+**Alternatives rejected.**
+- FMP API for pre-computed scores: rejected — paid + variant uncertainty.
+- Wait until Track A start to decide: deferred but covered by this decision; if recompute proves too painful, FMP becomes an option then.
+
+**Follow-up.** Added to BACKLOG as a Track A prep item with reference to thesis F-Score definition (Section X of `Master-Thesis_Romeiro_Malbrich.pdf`).
+
+---
 
 **Decision.** Track B is a bi-weekly recommendation engine producing a long-form markdown report with 5 rank-weighted picks (30/25/20/15/10) drawn from a global universe (S&P 500 + STOXX 600 + Nikkei 225 + FTSE 100 + ASX 200, ~1,500 deduped names). Five-stage pipeline: pre-filter → deep-dive → ranked → thesis (Claude API) → report. Holdings diff vs. manual `holdings.csv`. -10% stop loss enforced via daily price check. Aspirational return target 40% annual; honest measured benchmark is S&P 500.
 

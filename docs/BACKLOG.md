@@ -69,14 +69,19 @@ Not for production; only useful as a "did we reproduce the thesis?" sanity check
 
 ---
 
-## Broker / execution
+## Track A — prep items (when we start Track A)
 
-### P2 — Switch broker vs. stay at Nordea
-**Hypothesis.** Saxo/Nordnet have lower kurtage and no depotgebyr on foreign stocks. Switching could save ~30–50bps/year on this size of portfolio.
-**How we'd test.** Get Marcel's last Nordea statement (depotgebyr number), simulate same trades on Saxo/Nordnet published price lists, compare 5y net cost.
+### P0 — F-Score implementation from raw yfinance data
+**Reference.** Thesis defines the exact 9 conditions used. Pre-computed APIs (FMP, GuruFocus) exist but cost money + use slightly different variants. Decision: compute ourselves. ~80 lines of code.
+**Dependencies.** yfinance `balance_sheet`, `income_stmt`, `cashflow` for current + prior year per ticker.
 
-### P3 — Limit orders / TWAP for larger positions
-On €700–2300 trades, slippage is probably negligible. Skip until portfolio scales.
+---
+
+## Broker
+
+### P2 — Switch broker (Saxo Bank / Nordnet)
+**Hypothesis.** Saxo/Nordnet have lower kurtage and no depotgebyr on foreign stocks. Switching could save ~30–50bps/year. Demoted from blocker after Track B locked to monthly 1-pick (fee math now acceptable).
+**How we'd test.** Get Marcel's Nordea depotgebyr (B4), simulate same trades on competitor price lists, decide if savings justify one-time switch friction (only one ASK allowed per person, so switch means moving Track A too).
 
 ---
 
@@ -97,6 +102,11 @@ On €700–2300 trades, slippage is probably negligible. Skip until portfolio s
 ---
 
 ## Universe & data
+
+### ~~P1 — Nikkei 225 scraper~~ DONE (2026-05-18)
+**Implemented.** Wikipedia Nikkei 225 article (`<ul>/<li>` list format, not `<table>`) parsed with BeautifulSoup + regex `TYO:\s*(\d{4,5})`. Returns 223 tickers, all suffixed `.T`. Known anchors confirmed: 7203.T (Toyota), 9984.T (SoftBank), 6857.T (Advantest).
+**Note:** The original Wikidata SPARQL approach was dead — wrong QID in backlog (Q193068 = "particle-wave duality"; correct is Q507338), and P249 (ticker symbol) is 0.04% populated for Japanese stocks in Wikidata.
+**Universe now:** ~1,492 unique tickers (was ~1,269).
 
 ### P1 — Point-in-time S&P 500 membership
 **Hypothesis.** Using current S&P 500 membership in a 2015–2019 backtest is mild survivorship bias. Point-in-time membership is honest.
@@ -146,9 +156,8 @@ Track B v0.1 spec is locked (see STATE.md). The items below are post-v0.1 improv
 **Hypothesis.** A clickable HTML dashboard with charts per pick is nicer than markdown for at-a-glance review. Markdown first; dashboard once v0.1 is stable.
 **How we'd test.** Build a static HTML generator that takes the same report data and renders chartjs/plotly visuals + the long-form text.
 
-### P1 — Daily stop-loss alert (separate from bi-weekly report)
-**Hypothesis.** A daily price-check script that emails or files an alert when any held position breaches -10% is more useful than waiting up to 13 days for the next bi-weekly report.
-**How we'd test.** Cron-able Python script; output a structured alert file Marcel checks daily.
+### ~~P1 — Daily stop-loss alert~~ DONE (2026-05-18)
+**Implemented.** `track_b/src/stopwatch.py` + `track_b/daily_check.py`. Exit code 0/1/2 for cron. Writes dated alert to `track_b/output/alerts/`. 13 tests passing.
 
 ### P2 — Performance retrospective
 **Hypothesis.** Every quarter, the agent reviews its own past picks and writes a retrospective: which thesis was right, which was wrong, what signals correlated with winners, what we got fooled by. This is the actual learning loop.
@@ -164,3 +173,46 @@ yfinance + free RSS may give thin news coverage. Paid news APIs (NewsAPI, Market
 ### P3 — Confidence calibration
 **Hypothesis.** The agent's confidence assessments (which drive whether a pick gets a non-zero weight) can be calibrated against actual outcomes over time.
 **How we'd test.** Track confidence-vs-realized-return per pick over ~50 picks; fit a calibration curve.
+
+---
+
+## Roadmap — proposed "next level" (added 2026-06-14, for Marcel's review)
+
+*These are the points I'd add to lift the project from "local scripts that work" to "a hosted, self-updating, private-by-design portfolio cockpit." Read, cut, re-prioritise. Nothing here is committed until you nod.*
+
+### The honest API reality (read first — it shapes everything below)
+- **Nordea has no retail brokerage/depot read API.** Nordea's PSD2/Open Banking APIs expose *bank account* balances and payments, **not** securities held in an Aktiesparekonto. There is no supported way to programmatically pull your ASK holdings from Nordea as a private customer. Aggregators (Tink, GoCardless/Nordigen, Plaid) inherit the same limit — they read bank accounts, not Danish brokerage depots.
+- **Saxo Bank is the one real exception.** Saxo has a proper OpenAPI (OAuth, read-only `port/v1/positions` etc.). If you ever move the ASK to Saxo (already parked as P2 "Switch broker"), genuine read-only position sync becomes possible. So: the broker-switch question now has a *second* payoff beyond fees — it's the only path to automated holdings.
+- **Therefore the design rule:** treat holdings behind an adapter interface. Manual entry now (`holdings.csv` / paste / browser), a `SaxoSync` adapter later. Do **not** fake or scrape a Nordea integration.
+
+### NL-1 (P0) — Static GitHub Pages "cockpit"
+**Hypothesis.** The pipeline already emits everything a good dashboard needs (theses, rankings, alerts). A static site over a machine-readable `latest.json` turns it into a research terminal you actually open weekly — no server, no cost.
+**How we'd test.** Build a single static app that loads committed JSON + markdown and renders: current pick + thesis, candidate leaderboard, stop-loss status, Track A live recommendation. Ship to GitHub Pages.
+
+### NL-2 (P0) — Private-by-design holdings (localStorage split)
+**Hypothesis.** Research (signals, theses, picks) can be public/shareable; your actual € positions must never be. Keep the public layer in committed JSON and the private layer (tickers + amounts + entry prices) in **browser localStorage only** — never committed, never leaves the machine. The app merges them at render time (public thesis + your private P&L overlay). Export/import JSON for backup/second device.
+**How we'd test.** Enter holdings in the browser; confirm nothing touches git; reload persists; P&L overlay renders against public prices.
+
+### NL-3 (P1) — GitHub Actions automation (the "self-updating" part)
+**Hypothesis.** A monthly cron (`run.py` for both tracks → commit report + `latest.json`) and a daily cron (`daily_check.py` stop-loss → commit alert, email on breach) make the cockpit update itself. Anthropic key lives in an Actions secret, never in the public site.
+**How we'd test.** Schedule both workflows; confirm a clean monthly commit + a daily green/red alert; verify the key never appears in build output.
+
+### NL-4 (P1) — Realized-performance / benchmark tracking (the actual learning loop)
+**Hypothesis.** The biggest gap today: we generate picks but never systematically score them. Track every Track B pick's realized return vs its index from pick date, and Track A's live NAV vs S&P 500. This is what turns "fun money" into measurable skill.
+**How we'd test.** Append each pick to a `track_record.json`; recompute P&L vs benchmark on each run; chart cumulative pick performance vs index in the cockpit.
+
+### NL-5 (P1) — Unified `portfolio.json` contract
+**Hypothesis.** One schema both tracks write and the cockpit reads decouples the UI from pipeline internals. Add a `track_a/src/export.py` + `track_b/src/export.py` that emit a shared shape.
+**How we'd test.** Define schema, write from both tracks, validate the cockpit renders from JSON alone (no Python at view time).
+
+### NL-6 (P2) — Stop-loss push notification
+**Hypothesis.** A daily breach should reach your phone, not just a committed markdown file. GitHub Actions can email on failure exit code, or POST to a webhook (ntfy/Pushover/Telegram bot).
+**How we'd test.** Force a breach in a test holding; confirm notification arrives.
+
+### NL-7 (P2) — Committed price snapshot for reproducible builds
+**Hypothesis.** Pages builds shouldn't depend on a live yfinance fetch succeeding in CI. Commit a small parquet/JSON price snapshot per run so the site is reproducible and fast.
+**How we'd test.** Build the site offline from the committed snapshot.
+
+### NL-8 (P2) — Surface Track A tear sheets + the full μ₀ backtest sweep in the cockpit
+**Hypothesis.** The pending 2021–2026 sweep (14 combinations) produces NAV + Pareto charts. The cockpit should host them as an interactive tab, not leave them as local PNGs.
+**How we'd test.** Run the sweep once, export chart data as JSON, render with a JS chart lib.

@@ -1,0 +1,49 @@
+name: Monthly pick
+
+# Runs both pipelines on the 1st of each month, regenerates the cockpit data,
+# and commits it. The push to web/** triggers deploy-pages.yml.
+#
+# Setup required once:
+#   - Repo secret ANTHROPIC_API_KEY (Settings → Secrets → Actions)
+#   - Pages source = GitHub Actions (Settings → Pages)
+
+on:
+  schedule:
+    - cron: "0 6 1 * *"        # 06:00 UTC on the 1st
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Track B — monthly pick
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python track_b/run.py --log-level INFO
+
+      - name: Track A — live recommendation
+        run: python track_a/run.py --mode live --log-level INFO
+        continue-on-error: true   # solver/data hiccups must not block the pick
+
+      - name: Build cockpit data
+        run: python build_site.py
+
+      - name: Commit cockpit update
+        run: |
+          git config user.name  "cockpit-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add web/data track_b/output track_a/output 2>/dev/null || true
+          git commit -m "chore: monthly cockpit update ($(date -u +%F))" || echo "no changes"
+          git push

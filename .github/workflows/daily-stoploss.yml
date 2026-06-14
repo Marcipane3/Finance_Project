@@ -1,0 +1,46 @@
+name: Daily stop-loss
+
+# Checks the active position against its -10% stop after the US close on
+# weekdays, regenerates the cockpit data, and commits. A breach turns the
+# "Fast Ideas" tab dot red in the cockpit.
+#
+# Note: the server only knows a position if one is recorded in a committed,
+# non-sensitive watch file. Personal € amounts stay browser-only by design,
+# so with no watch file this job reports "no_position" (harmless no-op).
+# See docs/STATE.md "cockpit" notes for the watch.json follow-up.
+
+on:
+  schedule:
+    - cron: "30 21 * * 1-5"     # 21:30 UTC, Mon-Fri (after US market close)
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Stop-loss check
+        run: python track_b/daily_check.py --log-level INFO
+        continue-on-error: true   # exit 1 = breach is expected signalling, not failure
+
+      - name: Build cockpit data
+        run: python build_site.py
+
+      - name: Commit cockpit update
+        run: |
+          git config user.name  "cockpit-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add web/data track_b/output 2>/dev/null || true
+          git commit -m "chore: daily stop-loss check ($(date -u +%F))" || echo "no changes"
+          git push

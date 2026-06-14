@@ -22,24 +22,14 @@ Resolved blockers move to DECISIONS.md and are deleted from here.
 **Why blocking.** Not blocking v0.1 — we'll use 0% as a placeholder. But the real number determines whether a broker switch to Saxo/Nordnet (both 0% depotgebyr) is worth the effort.
 **Proposed resolution.** Marcel pastes the number; we add it to the fee model.
 **Opened.** 2026-05-17.
-**Working assumption (placeholder until confirmed):** 0.10% annual on foreign stocks held in ASK. Conservative middle estimate — Nordea's general schedule mentions a fee exists but the rate isn't publicly listed. If the real number is materially higher, fee impact on Track A worsens proportionally.
-
----
-
-## B6 — Broker decision for Track B
-
-**Status.** Open. **This is now the top priority blocker — gates Track B from going live.**
-**What's needed.** Marcel decides among:
-1. Switch ASK to Saxo Bank or Nordnet (one-time friction, recurring savings; closes Nordea ASK)
-2. Keep Track B inside Nordea ASK (tax-neutral on trades; fees stay high)
-3. Track B in regular Nordea handelskonto (worst tax + worst fees — not recommended)
-4. Accept Plan B: keep at Nordea, reduce Track B cadence to monthly (~10% fee drag instead of 30–74%)
-**Why blocking.** Track B's economics depend on this. We can build the recommendation engine without it (broker-agnostic code), but Marcel can't actually trade Track B until decided.
-**Proposed resolution.** Marcel reflects, makes call. Recommendation: option 1.
-**Opened.** 2026-05-17.
+**Working assumption (placeholder until confirmed):** 0.10% annual on foreign stocks held in ASK. Conservative middle estimate.
 
 ---
 
 ## B5 — Track B specification incomplete *(RESOLVED 2026-05-17)*
+Resolved — Track B monthly 1-pick locked. See DECISIONS.
 
-Resolved — moved to DECISIONS log.
+---
+
+## B6 — Broker decision for Track B *(RESOLVED 2026-05-17)*
+Resolved — monthly 1-pick at Nordea has acceptable fee math (~7%/year). Broker switch parked to BACKLOG.

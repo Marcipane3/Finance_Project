@@ -35,25 +35,65 @@ track_b:
   # Deep-dive — full enrichment per candidate
   deep_dive:
     top_n: 15
-    signals:
-      - technical
-      - fundamentals
-      - news
-      - analyst
-      - sentiment
+    weights:
+      # technical (computed from closes, no API call)
+      rsi_14: 0.08              # momentum strength
+      price_vs_52w_high: 0.08   # proximity to highs = trend intact
+      price_vs_ma50: 0.06       # trading above MA50
+      realized_vol_30d: 0.00    # excluded from scoring; included in output for thesis writer
+      # fundamental (from yfinance Ticker.info)
+      revenue_growth: 0.18
+      earnings_growth: 0.15
+      forward_pe: 0.10          # inverted in code: lower PE = better score
+      profit_margin: 0.10
+      # analyst / sentiment
+      analyst_upside: 0.15      # (target_price - price) / price
+      analyst_rating: 0.10      # inverted in code: 1=buy = better score
 
   # LLM thesis writer
   thesis:
     # In single_monthly mode: 1 final pick gets a thesis
     # In ranked_biweekly mode: top 5 get theses
     model: claude-sonnet-4-6
-    max_tokens_per_pick: 2000
+    max_tokens_per_pick: 3500
     style: long_form   # short | medium | long_form
 
   # Output
   output:
     format: markdown
     save_to: track_b/output/reports/
+
+track_a:
+  initial_capital_eur: 23000
+  new_capital_per_period_eur: 3000     # overridable via --new-capital CLI flag
+  backtest_start: "2021-01-01"
+  price_history_start: "2016-01-01"   # 5y before backtest start for MVN estimation
+
+  universe: sp500
+
+  fscore:
+    threshold: 8
+    min_stocks: 10          # lower threshold until this many pass
+
+  returns:
+    lookback_days: 1260     # 5 trading years
+    n_simulations: 5000
+
+  optimizer:
+    beta: 0.10              # CVaR tail level
+    k_min: 10               # minimum portfolio cardinality
+    k_max: 30               # maximum portfolio cardinality
+    w_min: 0.0304           # 3.04% ≈ €700 minimum position
+    w_max: 0.10             # 10% maximum position
+    tc_variable: 0.0045     # 0.20% commission + 0.25% FX margin
+    solver_time_limit_s: 120
+
+  a2:
+    k_min_new: 1            # add at least 1 new stock
+    k_max_new: 4            # add at most 4 new stocks with quarterly €3k
+
+  mu0_sweep_annual: [0.0, 0.05, 0.10, 0.15, 0.20, 0.25, 0.30]
+  cadences: [quarterly, yearly]
 
 # Broker fee model (for honest performance reporting)
 fees:

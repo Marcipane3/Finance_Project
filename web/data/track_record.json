@@ -1,0 +1,12 @@
+[
+  {
+    "ticker": "WDC",
+    "name": "Western Digital",
+    "pick_date": "2026-05-18",
+    "entry_price_usd": 450.76,
+    "benchmark": "ACWI",
+    "status": "open",
+    "return_pct": null,
+    "benchmark_return_pct": null
+  }
+]

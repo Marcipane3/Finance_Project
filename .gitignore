@@ -41,7 +41,11 @@ track_a/data/cache/
 track_b/output/reports/*.md
 !track_b/output/reports/.gitkeep
 
-# Holdings file (personal financial data — never commit)
+# Holdings files (personal financial data — never commit).
+# These are the real paths the pipelines read (live.py / holdings.py).
+# Personal positions also live only in the cockpit browser (localStorage).
+track_b/holdings.csv
+track_a/holdings.csv
 track_b/data/holdings.csv
 track_a/data/holdings.csv
 
