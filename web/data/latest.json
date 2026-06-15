@@ -1,212 +1,13 @@
 {
-  "generated_at": "2026-06-14T21:53:03+00:00",
+  "generated_at": "2026-06-15T23:20:36+00:00",
   "currency": "EUR",
   "fx": {
-    "usd_eur": 1.1610356551071623,
-    "gbp_eur": 1.1562000513076782,
+    "usd_eur": 1.1594202738302994,
+    "gbp_eur": 1.1568000316619873,
     "dkk_eur": 0.13366000354290009,
-    "jpy_eur": 0.005390400066971779
+    "jpy_eur": 0.0053820000030100346
   },
-  "track_b": {
-    "as_of": "2026-05-18",
-    "pick": {
-      "ticker": "WDC",
-      "name": "Western Digital",
-      "sector": "Technology",
-      "industry": "Computer Hardware",
-      "price_usd": 450.76,
-      "recommendation": {
-        "action": "INITIATE",
-        "stop_price": 433.82
-      }
-    },
-    "leaderboard": [
-      {
-        "rank": 1,
-        "ticker": "WDC",
-        "name": "Western Digital",
-        "score": 0.79,
-        "forward_pe": 25.9,
-        "revenue_growth": 0.455,
-        "earnings_growth": 4.829,
-        "analyst_upside": 0.126,
-        "rsi_14": 66.46,
-        "momentum_12_1": 6.239
-      },
-      {
-        "rank": 2,
-        "ticker": "MU",
-        "name": "Micron Technology",
-        "score": 0.75,
-        "forward_pe": 6.5,
-        "revenue_growth": 1.963,
-        "earnings_growth": 7.56,
-        "analyst_upside": -0.126,
-        "rsi_14": 66.28,
-        "momentum_12_1": 3.909
-      },
-      {
-        "rank": 3,
-        "ticker": "STX",
-        "name": "Seagate Technology",
-        "score": 0.75,
-        "forward_pe": 27.9,
-        "revenue_growth": 0.441,
-        "earnings_growth": 1.083,
-        "analyst_upside": 0.114,
-        "rsi_14": 73.09,
-        "momentum_12_1": 3.778
-      },
-      {
-        "rank": 4,
-        "ticker": "SNDK",
-        "name": "Sandisk",
-        "score": 0.73,
-        "forward_pe": 7.7,
-        "revenue_growth": 2.51,
-        "earnings_growth": 0.627,
-        "analyst_upside": 0.083,
-        "rsi_14": 65.5,
-        "momentum_12_1": 23.664
-      },
-      {
-        "rank": 5,
-        "ticker": "GOOGL",
-        "name": "Alphabet Inc. (Class A)",
-        "score": 0.72,
-        "forward_pe": 27.5,
-        "revenue_growth": 0.218,
-        "earnings_growth": 0.82,
-        "analyst_upside": 0.077,
-        "rsi_14": 70.24,
-        "momentum_12_1": 1.001
-      },
-      {
-        "rank": 6,
-        "ticker": "VRT",
-        "name": "Vertiv",
-        "score": 0.69,
-        "forward_pe": 38.1,
-        "revenue_growth": 0.301,
-        "earnings_growth": 1.357,
-        "analyst_upside": 0.07,
-        "rsi_14": 68.87,
-        "momentum_12_1": 1.828
-      },
-      {
-        "rank": 7,
-        "ticker": "AMD",
-        "name": "Advanced Micro Devices",
-        "score": 0.68,
-        "forward_pe": 32.0,
-        "revenue_growth": 0.37799999999999995,
-        "earnings_growth": 0.912,
-        "analyst_upside": 0.10400000000000001,
-        "rsi_14": 67.29,
-        "momentum_12_1": 1.5230000000000001
-      },
-      {
-        "rank": 8,
-        "ticker": "NEM.AX",
-        "name": "Newmont",
-        "score": 0.67,
-        "forward_pe": 9.5,
-        "revenue_growth": 0.45799999999999996,
-        "earnings_growth": 0.7859999999999999,
-        "analyst_upside": 0.302,
-        "rsi_14": 48.24,
-        "momentum_12_1": 0.914
-      },
-      {
-        "rank": 9,
-        "ticker": "NUE",
-        "name": "Nucor",
-        "score": 0.62,
-        "forward_pe": 14.3,
-        "revenue_growth": 0.213,
-        "earnings_growth": 3.821,
-        "analyst_upside": 0.068,
-        "rsi_14": 64.18,
-        "momentum_12_1": 0.795
-      },
-      {
-        "rank": 10,
-        "ticker": "LITE",
-        "name": "Lumentum",
-        "score": 0.61,
-        "forward_pe": 48.3,
-        "revenue_growth": 0.9009999999999999,
-        "earnings_growth": 0.627,
-        "analyst_upside": 0.27,
-        "rsi_14": 55.58,
-        "momentum_12_1": 10.762
-      },
-      {
-        "rank": 11,
-        "ticker": "MCHP",
-        "name": "Microchip Technology",
-        "score": 0.6,
-        "forward_pe": 22.5,
-        "revenue_growth": 0.35100000000000003,
-        "earnings_growth": 0.627,
-        "analyst_upside": 0.237,
-        "rsi_14": 59.36,
-        "momentum_12_1": 0.39799999999999996
-      },
-      {
-        "rank": 12,
-        "ticker": "TER",
-        "name": "Teradyne",
-        "score": 0.59,
-        "forward_pe": 33.3,
-        "revenue_growth": 0.87,
-        "earnings_growth": 3.148,
-        "analyst_upside": 0.165,
-        "rsi_14": 45.52,
-        "momentum_12_1": 3.764
-      },
-      {
-        "rank": 13,
-        "ticker": "AMAT",
-        "name": "Applied Materials",
-        "score": 0.59,
-        "forward_pe": 25.8,
-        "revenue_growth": 0.114,
-        "earnings_growth": 0.335,
-        "analyst_upside": 0.23399999999999999,
-        "rsi_14": 61.74,
-        "momentum_12_1": 1.49
-      },
-      {
-        "rank": 14,
-        "ticker": "GEV",
-        "name": "GE Vernova",
-        "score": 0.56,
-        "forward_pe": 40.7,
-        "revenue_growth": 0.163,
-        "earnings_growth": 18.165,
-        "analyst_upside": 0.22,
-        "rsi_14": 51.7,
-        "momentum_12_1": 1.111
-      },
-      {
-        "rank": 15,
-        "ticker": "LRCX",
-        "name": "Lam Research",
-        "score": 0.56,
-        "forward_pe": 34.8,
-        "revenue_growth": 0.23800000000000002,
-        "earnings_growth": 0.408,
-        "analyst_upside": 0.127,
-        "rsi_14": 57.13,
-        "momentum_12_1": 2.2430000000000003
-      }
-    ],
-    "report_md": "# Track B — Monthly Pick: WDC\n*2026-05-18 · Western Digital* · Technology / Computer Hardware\n\n---\n\n## Company Snapshot\n\n**Western Digital** (**WDC**), currently trading at **$450.76** with a market cap of **$155.4B USD**, manufactures NAND flash memory and hard disk drives, with revenue driven by enterprise SSD demand, cloud storage infrastructure spending, and consumer flash products. The company's moat derives from its vertically integrated NAND manufacturing through its joint venture with Kioxia and its end-to-end control of the flash supply chain — a structural position that gives it both cost leverage and capacity discipline in a notoriously cyclical industry. WDC is in the middle of a pronounced upcycle, with the storage sector benefiting from AI-driven enterprise storage demand and a normalization of the oversupply that crushed margins through 2022–2023.\n\n---\n\n## Bull Case\n\nThe most compelling reason to own **WDC** right now is the sheer magnitude of the earnings recovery. Reported earnings growth of **+482.9%** YoY and a revenue growth rate of **+45.5%** YoY confirm this is not a modest inflection — it is a full-scale cyclical turn. The earnings surprise for the most recent quarter came in at **+28,363.0%**, which at first reads as a data anomaly, but more likely reflects EPS recovering from near-zero or negative consensus estimates to a materially positive print — a pattern consistent with deep-cycle trough-to-recovery dynamics. The profit margin of **55.3%** signals pricing power has returned meaningfully to flash, and that incremental revenue is flowing through to the bottom line at a high conversion rate.\n\nSecond, the intermediate momentum is extraordinary: **12-month momentum (ex-last month) of +623.9%** places WDC in the extreme right tail of momentum distributions. This is not noise — it reflects a fundamental re-rating as analyst consensus revised from cycle bottom fears to recovery estimates. The 1-month momentum of **+33.3%** suggests the re-rating is still in progress, not exhausted.\n\nThird, despite a substantial move, analysts maintain a **strong buy consensus rating of 1.52** (on a 1–5 scale) with a mean price target implying **+12.6%** additional upside from here. Zero net upgrades in the last 30 days suggests analysts have not yet chased the price move aggressively — meaning the target revision cycle may still have room to run if earnings delivery continues.\n\n---\n\n## Bear Case & Key Risks\n\n**Risk 1 — Cyclical momentum fragility at elevated valuation.** The NAND flash market is notoriously prone to rapid supply/demand reversals. At **25.88x forward P/E**, WDC is priced for continued earnings normalization, not another inventory correction. If enterprise storage capex softens — watch hyperscaler guidance from AWS, Azure, and Google Cloud in their next quarterly calls — flash pricing could roll over quickly, compressing both revenue and margins. The trigger to watch: any flash ASP (average selling price) decline commentary in WDC's next earnings call or in competitor NAND outlooks.\n\n**Risk 2 — Realized volatility at 49.6% annualized creates outsized drawdown risk.** A **30-day annualized vol of 49.6%** means daily moves of roughly ±3% are within one standard deviation. The stock has moved **+33.3% in a single month** — the same velocity works in reverse. If broader semiconductor sentiment turns (e.g., the Philadelphia Semiconductor Index breaks a key support level) or WDC misses next quarter's revenue line given the elevated base, the correction could be fast and deep before the -10% stop triggers. The trigger: a closing weekly price below the 50-day moving average, which currently sits **34.4% below the current price**, indicating how extended the stock is.\n\n**Risk 3 — Short squeeze dynamics may have partly inflated recent price action.** A **short ratio of 3.91** means that roughly four days of volume would be needed to cover existing short positions. Some portion of the +33.3% 1-month return may reflect short covering rather than new long conviction. If short interest has already been substantially reduced, the mechanical fuel supporting the rally is diminished. Observable trigger: rising short interest data from the next bi-monthly FINRA/exchange report — any uptick in short ratio after the recent rally would signal fresh bearish conviction re-entering at elevated levels.\n\n---\n\n## Why Now\n\n**WDC** presents a **momentum continuation** setup with a constructive but not overheated technical profile. The **RSI-14 of 66.46** is elevated but meaningfully below the overbought threshold of 70 — it signals strong trend momentum without a flashing caution signal. A pullback from here does not require the RSI to cool before re-entry is reasonable.\n\nThe stock is at **93.4% of its 52-week high** — close enough to the high that the trend is intact and the recovery thesis is confirmed, but not so extended that buying at the exact peak is the scenario. This is a \"approaching breakout\" configuration: if WDC clears its 52-week high on volume, it enters price discovery, which would be a classical new-high breakout signal.\n\nThe **price-to-MA-50 ratio of 134.4%** is striking and warrants explicit acknowledgment: the stock is one-third above its 50-day average. This is an extremely extended reading that typically signals either a parabolic move in a powerful new trend or the late stages of a squeeze. Given the scale of the underlying EPS recovery (**+482.9%**), the former interpretation is more consistent with fundamentals — but this technical extension alone justifies tight position sizing rather than oversizing.\n\nOne month ago, the earnings surprise and revenue growth data were less confirmed. Three months from now, the stock may be closer to analyst price targets or already pricing in next-cycle estimates. Today's entry sits in a window where the fundamental recovery is confirmed and the technical extension is real but not at peak exhaustion.\n\n---\n\n## Why Not the Alternatives\n\n**MU (Micron Technology):** Micron offers superior earnings growth of **+756.0%** and a more attractive forward P/E of **6.51x**, but analysts price in a mean consensus return of **-12.6%** — a negative analyst upside figure that signals targets have not kept pace with recent price action, or that targets have actually been set below the current price. Despite better fundamental optics, the analyst setup is worse than WDC's **+12.6%** upside with a 1.52 consensus rating.\n\n**STX (Seagate Technology):** Seagate's **+11.4%** analyst upside and **27.94x** forward P/E are broadly comparable to WDC, but earnings growth of **+108.3%** is materially weaker than WDC's **+482.9%**, and its 12-month momentum of **+377.8%** lags WDC's **+623.9%**. In a cycle recovery trade, you want the name with the most operating leverage to the upcycle — WDC wins on that dimension.\n\n**SNDK (Sandisk):** The momentum figure of **+2,366.4%** is anomalous and likely reflects a spinout, listing event, or price reconstruction artifact rather than real investable momentum. The **8.3%** analyst upside is the lowest of the group and earnings growth of **+62.7%** is the weakest. Insufficient track record as a standalone public entity makes it difficult to build conviction.\n\n**GOOGL (Alphabet Inc.):** Alphabet is a fundamentally different business — a large-cap platform company with **+82.0%** earnings growth and **27.49x** forward P/E. Its 12-month momentum of **+100.1%** is solid but unremarkable relative to the semiconductor names. It does not offer the cycle recovery leverage of WDC and belongs in a different thesis category entirely.\n\n---\n\n## Position Parameters\n\n- **Entry rationale:** Entering on momentum continuation in confirmed earnings recovery cycle, with RSI below overbought and stock approaching 52-week high.\n- **Stop-loss:** Stop: **$405.68** — max loss ~€200 on €2,000 sleeve\n- **Review cadence:** Monthly\n- **Sleeve size:** ~€2,000, 100% in this single name\n- **Approximate shares:** 4 shares (€2,000 ÷ $450.76 ≈ 4.4, rounded down to 4)\n\n---\n\n## Holdings Diff\n\n**Recommendation: INITIATE**\n\nNo active position. Initiating new position in WDC.\n\n**Entering:** WDC | stop-loss at 433.82 (−10% from current)\n\n_Update holdings.csv after executing the trade._\n\n---\n\n## Pipeline Summary\n\n| # | Ticker | Name | Score | Fwd PE | Rev Gr | EPS Gr | Upside | RSI | Mom 12m |\n|---|---|---|---|---|---|---|---|---|---|\n| 1 | WDC | Western Digital | 0.79 | 25.9x | 45.5% | 482.9% | 12.6% | 66.46 | 623.9% |\n| 2 | MU | Micron Technology | 0.75 | 6.5x | 196.3% | 756.0% | -12.6% | 66.28 | 390.9% |\n| 3 | STX | Seagate Technology | 0.75 | 27.9x | 44.1% | 108.3% | 11.4% | 73.09 | 377.8% |\n| 4 | SNDK | Sandisk | 0.73 | 7.7x | 251.0% | 62.7% | 8.3% | 65.50 | 2366.4% |\n| 5 | GOOGL | Alphabet Inc. (Class A) | 0.72 | 27.5x | 21.8% | 82.0% | 7.7% | 70.24 | 100.1% |\n| 6 | VRT | Vertiv | 0.69 | 38.1x | 30.1% | 135.7% | 7.0% | 68.87 | 182.8% |\n| 7 | AMD | Advanced Micro Devices | 0.68 | 32.0x | 37.8% | 91.2% | 10.4% | 67.29 | 152.3% |\n| 8 | NEM.AX | Newmont | 0.67 | 9.5x | 45.8% | 78.6% | 30.2% | 48.24 | 91.4% |\n| 9 | NUE | Nucor | 0.62 | 14.3x | 21.3% | 382.1% | 6.8% | 64.18 | 79.5% |\n| 10 | LITE | Lumentum | 0.61 | 48.3x | 90.1% | 62.7% | 27.0% | 55.58 | 1076.2% |\n| 11 | MCHP | Microchip Technology | 0.60 | 22.5x | 35.1% | 62.7% | 23.7% | 59.36 | 39.8% |\n| 12 | TER | Teradyne | 0.59 | 33.3x | 87.0% | 314.8% | 16.5% | 45.52 | 376.4% |\n| 13 | AMAT | Applied Materials | 0.59 | 25.8x | 11.4% | 33.5% | 23.4% | 61.74 | 149.0% |\n| 14 | GEV | GE Vernova | 0.56 | 40.7x | 16.3% | 1816.5% | 22.0% | 51.70 | 111.1% |\n| 15 | LRCX | Lam Research | 0.56 | 34.8x | 23.8% | 40.8% | 12.7% | 57.13 | 224.3% |\n\n*Universe scraped: 1,210 names · Prices loaded: 1,076 tickers · Prefilter output: 50 · Deep-dive output: 15*\n\n---\n\n*Generated by Track B v0.1 · 2026-05-18 · Universe 1,210 → Prefilter 50 → Ranker 15 picks · 50s*",
-    "stop_loss": {
-      "status": "no_position"
-    }
-  },
+  "track_b": null,
   "track_a": {
     "as_of": "2026-05-19",
     "n_eligible": 65,
@@ -307,9 +108,9 @@
       "entry_price_usd": 450.76,
       "benchmark": "ACWI",
       "status": "open",
-      "return_pct": 0.24884637651029662,
-      "benchmark_return_pct": 0.013734985638845565,
-      "last_price": 562.9299926757812
+      "return_pct": 0.4498403347610147,
+      "benchmark_return_pct": 0.023906621552981955,
+      "last_price": 653.530029296875
     }
   ]
 }
