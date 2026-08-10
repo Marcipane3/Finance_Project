@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-08-07T22:07:51+00:00",
+  "generated_at": "2026-08-10T22:09:32+00:00",
   "currency": "EUR",
   "fx": {
-    "usd_eur": 1.1562030386860267,
-    "gbp_eur": 1.1668000221252441,
-    "dkk_eur": 0.1336199939250946,
-    "jpy_eur": 0.005482500419020653
+    "usd_eur": 1.154601067653301,
+    "gbp_eur": 1.169600009918213,
+    "dkk_eur": 0.13364000618457794,
+    "jpy_eur": 0.00543770007789135
   },
   "track_b": null,
   "track_a": {
@@ -108,9 +108,9 @@
       "entry_price_usd": 450.76,
       "benchmark": "ACWI",
       "status": "open",
-      "return_pct": -0.03651613321286551,
-      "benchmark_return_pct": 0.05272975988110873,
-      "last_price": 434.29998779296875
+      "return_pct": -0.02755347338297398,
+      "benchmark_return_pct": 0.05051268692685151,
+      "last_price": 438.3399963378906
     }
   ]
 }
