@@ -6,8 +6,8 @@
     "entry_price_usd": 450.76,
     "benchmark": "ACWI",
     "status": "open",
-    "return_pct": null,
-    "benchmark_return_pct": null,
-    "last_price": null
+    "return_pct": 0.030703713957572987,
+    "benchmark_return_pct": 0.05768558757308817,
+    "last_price": 464.6000061035156
   }
 ]
